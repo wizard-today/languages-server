@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { Api } from "./api";
+import { Api } from "./api.ts";
 
 const app = express();
 const api = new Api();
