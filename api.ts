@@ -4,8 +4,8 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
    ENV
 ══════════════════════════════════════════════════════════ */
 
-const SUPABASE_URL      = process.env.SUPABASE_URL!;
-const SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD!;   // service_role key
+const SUPABASE_URL      = process.env.SUPABASE_URL;
+const SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD;
 
 if (!SUPABASE_URL || !SUPABASE_PASSWORD) {
   throw new Error("Нужно установить SUPABASE_URL и SUPABASE_PASSWORD");
@@ -78,9 +78,9 @@ export class Api {
   async getCategories(): Promise<Category[]> {
     // 1. Все категории
     const categoriesRaw = assertNoError(
-      await supabase.from("categories").select("id, name, short_name"),
+      await supabase.from("categories").select("id, name, short_name, collapsed"),
       "getCategories/categories"
-    ) as { id: string; name: string; short_name: string }[];
+    ) as { id: string; name: string; short_name: string, collapsed: boolean }[];
 
     // 2. Связи parent → child
     const nestedRaw = assertNoError(
@@ -108,6 +108,7 @@ export class Api {
             id:                 c.id,
             name:               c.name,
             short_name:         c.short_name,
+            collapsed:          c.collapsed,
             cards_count:        counts?.cards_count        ?? 0,
             repeat_cards_count: counts?.repeat_cards_count ?? 0,
             nested:             [],
@@ -130,6 +131,19 @@ export class Api {
 
     // Корневые — те, что не являются ничьими детьми
     return [...categoriesMap.values()].filter(c => !childIds.has(c.id));
+  }
+
+  async setCategoryCollapsed(
+    categoryId: string,
+    collapsed: boolean
+  ): Promise<void> {
+    assertNoError(
+      await supabase
+        .from("categories")
+        .update({ collapsed })
+        .eq("id", categoryId),
+      "setCategoryCollapsed"
+    );
   }
 
   /* ── Карточки, готовые к повторению (repeat_date <= now или null) ── */

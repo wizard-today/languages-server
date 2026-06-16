@@ -35,6 +35,7 @@ app.get("/categories", async (req, res) => {
     });
   }
 });
+
 /**
  * GET /cards
  * GET /cards?categoryIds=xxx,yyy,zzz
@@ -49,6 +50,32 @@ app.get("/cards", async (req, res) => {
     return res.json(cards);
   } catch (err) {
     return res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+/**
+ * PATCH /categories/:id/collapsed
+ */
+app.patch("/categories/:id/collapsed", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { collapsed } = req.body;
+
+    if (typeof collapsed !== "boolean") {
+      return res.status(400).json({
+        error: "Field 'collapsed' must be boolean",
+      });
+    }
+
+    await api.setCategoryCollapsed(id, collapsed);
+
+    return res.status(200).json({
+      success: true,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: (err as Error).message,
+    });
   }
 });
 

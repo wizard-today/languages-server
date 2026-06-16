@@ -13,9 +13,10 @@ CREATE TABLE IF NOT EXISTS repeats (
 
 -- Категории (бывший CATEGORIES_DB)
 CREATE TABLE IF NOT EXISTS categories (
-  id         UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
-  name       TEXT  NOT NULL,
-  short_name TEXT  NOT NULL DEFAULT ''
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       TEXT NOT NULL,
+  short_name TEXT NOT NULL DEFAULT '',
+  collapsed  BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Вложенность категорий (many-to-many: parent → children)
