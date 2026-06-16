@@ -26,7 +26,6 @@ export interface Repeat {
 export interface Category {
   id:                 string;
   name:               string;
-  short_name:         string;
   cards_count:        number;
   repeat_cards_count: number;
   nested:             Category[];
@@ -78,13 +77,22 @@ export class Api {
   async getCategories(): Promise<Category[]> {
     // 1. Все категории
     const categoriesRaw = assertNoError(
-      await supabase.from("categories").select("id, name, short_name, collapsed"),
+      await supabase
+        .from("categories")
+        .select("id, name, collapsed"),
       "getCategories/categories"
-    ) as { id: string; name: string; short_name: string, collapsed: boolean }[];
+    ) as {
+      id: string;
+      name: string;
+      collapsed: boolean;
+      sort_order: number;
+    }[];
 
     // 2. Связи parent → child
     const nestedRaw = assertNoError(
-      await supabase.from("category_nested").select("parent_id, child_id"),
+      await supabase.from("category_nested")
+        .select("parent_id, child_id, sort_order")
+        .order("sort_order", { ascending: true }),
       "getCategories/nested"
     ) as { parent_id: string; child_id: string }[];
 
@@ -107,7 +115,6 @@ export class Api {
           {
             id:                 c.id,
             name:               c.name,
-            short_name:         c.short_name,
             collapsed:          c.collapsed,
             cards_count:        counts?.cards_count        ?? 0,
             repeat_cards_count: counts?.repeat_cards_count ?? 0,
@@ -137,13 +144,10 @@ export class Api {
     categoryId: string,
     collapsed: boolean
   ): Promise<void> {
-    assertNoError(
-      await supabase
-        .from("categories")
-        .update({ collapsed })
-        .eq("id", categoryId),
-      "setCategoryCollapsed"
-    );
+    await supabase
+      .from("categories")
+      .update({ collapsed })
+      .eq("id", categoryId);
   }
 
   /* ── Карточки, готовые к повторению (repeat_date <= now или null) ── */

@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS repeats (
 CREATE TABLE IF NOT EXISTS categories (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name       TEXT NOT NULL,
-  short_name TEXT NOT NULL DEFAULT '',
   collapsed  BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -23,6 +22,7 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS category_nested (
   parent_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
   child_id  UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  sort_order INT NOT NULL DEFAULT 0,
   PRIMARY KEY (parent_id, child_id)
 );
 
